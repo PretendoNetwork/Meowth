@@ -22,8 +22,10 @@ bool replace_string(uint32_t start, uint32_t size, const char* original_val, siz
 
 bool PatchInstruction(void* instr, uint32_t original, uint32_t replacement) {
     uint32_t current = *(uint32_t*)instr;
-    DEBUG_FUNCTION_LINE("current instr %08x", current);
-    if (current != original) return current == replacement;
+    if (current != original) {
+        DEBUG_FUNCTION_LINE("Was given wrong instruction %08x, found %08x!", original, current);
+        return current == replacement;
+    }
 
     KernelCopyData(OSEffectiveToPhysical((uint32_t)instr), OSEffectiveToPhysical((uint32_t)&replacement), sizeof(replacement));
     //Only works on AROMA! WUPS 0.1's KernelCopyData is uncached, needs DCInvalidate here instead
@@ -31,7 +33,7 @@ bool PatchInstruction(void* instr, uint32_t original, uint32_t replacement) {
     ICInvalidateRange(instr, 4);
 
     current = *(uint32_t*)instr;
-    DEBUG_FUNCTION_LINE("patched instr %08x", current);
+    DEBUG_FUNCTION_LINE("patched instruction %08x -> %08x", original, current);
 
     return true;
 }

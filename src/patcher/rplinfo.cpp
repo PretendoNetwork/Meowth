@@ -24,8 +24,6 @@ std::optional<std::vector<OSDynLoad_NotifyData>> TryGetRPLInfo() {
         return std::nullopt;
     }
 
-    DEBUG_FUNCTION_LINE("num_rpls: %d", num_rpls);
-
     std::vector<OSDynLoad_NotifyData> rpls;
     rpls.resize(num_rpls);
 
