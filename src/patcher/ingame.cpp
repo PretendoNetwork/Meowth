@@ -19,6 +19,7 @@
 #include <coreinit/title.h>
 
 #include "patches/youtube.h"
+#include "patches/just_dance_2016.h"
 
 void RunPatcher() {
     auto orplinfo = TryGetRPLInfo();
@@ -53,4 +54,5 @@ void RunPatcher() {
 
     // "always" patches
     Patch_youtube(titleVer, titleId, rpls);
+    Patch_just_dance_2016(titleVer, titleId, rpls);
 }
