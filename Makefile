@@ -19,7 +19,7 @@ WUMS_ROOT := $(DEVKITPRO)/wums
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 #-------------------------------------------------------------------------------
-TARGET		:=	Inkay-pretendo
+TARGET		:=	meowth-ssl
 BUILD		:=	build
 SOURCES		:=	src src/utils src/patcher src/patcher/patches
 DATA		:=	data

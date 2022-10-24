@@ -18,7 +18,7 @@
 
 #include <coreinit/title.h>
 
-#include "patches/nn_olv.h"
+#include "patches/youtube.h"
 
 void RunPatcher() {
     auto orplinfo = TryGetRPLInfo();
@@ -52,5 +52,5 @@ void RunPatcher() {
     auto titleVer = __OSGetTitleVersion();
 
     // "always" patches
-    Patch_nn_olv(titleVer, titleId, rpls);
+    Patch_youtube(titleVer, titleId, rpls);
 }

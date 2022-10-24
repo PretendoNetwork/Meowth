@@ -4,6 +4,7 @@
 
 #include <kernel/kernel.h>
 #include <coreinit/memorymap.h>
+#include <coreinit/cache.h>
 
 bool replace_string(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz, const char* new_val, size_t new_val_sz) {
     for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
@@ -17,4 +18,20 @@ bool replace_string(uint32_t start, uint32_t size, const char* original_val, siz
     }
 
     return false;
+}
+
+bool PatchInstruction(void* instr, uint32_t original, uint32_t replacement) {
+    uint32_t current = *(uint32_t*)instr;
+    DEBUG_FUNCTION_LINE("current instr %08x", current);
+    if (current != original) return current == replacement;
+
+    KernelCopyData(OSEffectiveToPhysical((uint32_t)instr), OSEffectiveToPhysical((uint32_t)&replacement), sizeof(replacement));
+    //Only works on AROMA! WUPS 0.1's KernelCopyData is uncached, needs DCInvalidate here instead
+    DCFlushRange(instr, 4);
+    ICInvalidateRange(instr, 4);
+
+    current = *(uint32_t*)instr;
+    DEBUG_FUNCTION_LINE("patched instr %08x", current);
+
+    return true;
 }
