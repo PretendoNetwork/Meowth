@@ -20,5 +20,16 @@ void Patch_youtube(uint32_t titleVer, uint64_t titleId, const rplinfo& rpls) {
         // OpenSSL X509_verify_cert (called by cert_verify_proc_openssl.cc)
         PatchInstruction((void*)(rpx->textAddr + 0x9208e8), 0x9421ffb8, 0x38600001);
         PatchInstruction((void*)(rpx->textAddr + 0x9208ec), 0xbe410010, 0x4e800020);
+    } else if (titleId == 0x000500001014CE00 && titleVer == 64) {
+        auto rpx = FindRPL(rpls, "lb_shell.rpx");
+        if (!rpx) return;
+
+        DEBUG_FUNCTION_LINE("Detected YouTube BETA USA v%d - patching...", titleVer);
+        // OpenSSL ssl_verify_cert_chain
+        PatchInstruction((void*)(rpx->textAddr + 0x01392d80), 0x40820020, 0x60000000);
+        PatchInstruction((void*)(rpx->textAddr + 0x01392d98), 0x38600000, 0x38600001);
+        // OpenSSL X509_verify_cert (called by cert_verify_proc_openssl.cc)
+        PatchInstruction((void*)(rpx->textAddr + 0x013dee4c), 0x9421ffb8, 0x38600001);
+        PatchInstruction((void*)(rpx->textAddr + 0x013dee50), 0xbe410010, 0x4e800020);
     }
 }
