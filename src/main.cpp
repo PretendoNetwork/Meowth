@@ -48,6 +48,7 @@ static bool is555(MCP_SystemVersion version) {
 
 INITIALIZE_PLUGIN() {
     WHBLogUdpInit();
+    WHBLogCafeInit();
 
     auto res = Mocha_InitLibrary();
 
@@ -86,6 +87,7 @@ DEINITIALIZE_PLUGIN() {
 
 ON_APPLICATION_START() {
     WHBLogUdpInit();
+    WHBLogCafeInit();
     RunPatcher();
 }
 
