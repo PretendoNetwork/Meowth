@@ -28,6 +28,7 @@
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "patcher/ingame.h"
+#include "ca_pem.h"
 
 /**
     Mandatory plugin information.
@@ -41,6 +42,7 @@ WUPS_PLUGIN_LICENSE("ISC");
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
+#include <optional>
 
 static bool is555(MCP_SystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
@@ -92,3 +94,43 @@ ON_APPLICATION_START() {
 }
 
 ON_APPLICATION_ENDS() {}
+
+std::optional<FSFileHandle> rootca_pem_handle{};
+
+DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle, int error) {
+    if (strcmp("vol/content/browser/rootca.pem", path) == 0) {
+        int ret = real_FSOpenFile(client, block, path, mode, handle, error);
+        rootca_pem_handle = *handle;
+        DEBUG_FUNCTION_LINE("Inkay: Found eShop CA, replacing...");
+        return ret;
+    }
+
+    return real_FSOpenFile(client, block, path, mode, handle, error);
+}
+
+DECL_FUNCTION(FSStatus, FSReadFile, FSClient *client, FSCmdBlock *block, uint8_t *buffer, uint32_t size, uint32_t count, FSFileHandle handle, uint32_t unk1, uint32_t flags) {
+    if (size != 1) {
+        DEBUG_FUNCTION_LINE("Inkay: Miiverse CA replacement failed!");
+    }
+
+    if (rootca_pem_handle && *rootca_pem_handle == handle) {
+        memset(buffer, 0, size);
+        strcpy((char*)buffer, (const char*)ca_pem);
+
+        return (FSStatus)count;
+    }
+
+    return real_FSReadFile(client, block, buffer, size, count, handle, unk1, flags);
+}
+
+DECL_FUNCTION(FSStatus, FSCloseFile, FSClient * client, FSCmdBlock * block, FSFileHandle handle, FSErrorFlag errorMask) {
+    if (handle == rootca_pem_handle) {
+        rootca_pem_handle.reset();
+    }
+
+    return real_FSCloseFile(client, block, handle, errorMask);
+}
+
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_ESHOP);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_ESHOP);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_ESHOP);
