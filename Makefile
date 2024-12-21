@@ -28,10 +28,14 @@ INCLUDES	:=	src
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+CFLAGS	:=	-Wall -O2 -ffunction-sections -fdata-sections \
 			$(MACHDEP)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__ -D__WUPS__
+
+ifeq ($(DEBUG),1)
+	CFLAGS += -DDEBUG -g
+endif
 
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
@@ -105,7 +109,7 @@ $(BUILD):
 #-------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD)/* $(TARGET).wps $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).wps $(TARGET).elf
 
 #-------------------------------------------------------------------------------
 else
@@ -127,6 +131,11 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 # you need a rule like this for each extension you use as binary data
 #-------------------------------------------------------------------------------
 %.bin.o	%_bin.h :	%.bin
+#-------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+%.pem.o	%_pem.h :	%.pem
 #-------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)

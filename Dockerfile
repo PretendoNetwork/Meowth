@@ -1,8 +1,8 @@
-FROM wiiuenv/devkitppc:20220806
+FROM ghcr.io/wiiu-env/devkitppc:20241128
 
-COPY --from=wiiuenv/libkernel:20220724 /artifacts $DEVKITPRO
-COPY --from=wiiuenv/libmocha:20220903 /artifacts $DEVKITPRO
-COPY --from=wiiuenv/wiiupluginsystem:20220826 /artifacts $DEVKITPRO
+COPY --from=ghcr.io/wiiu-env/libkernel:20230621 /artifacts $DEVKITPRO
+COPY --from=ghcr.io/wiiu-env/libmocha:20240603 /artifacts $DEVKITPRO
+COPY --from=ghcr.io/wiiu-env/wiiupluginsystem:20240505 /artifacts $DEVKITPRO
 
 WORKDIR /app
 CMD make -f Makefile -j$(nproc)

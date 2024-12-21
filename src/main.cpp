@@ -16,16 +16,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <wups.h>
-#include <nsysnet/nssl.h>
-#include <coreinit/cache.h>
-#include <coreinit/dynload.h>
 #include <coreinit/mcp.h>
-#include <coreinit/memory.h>
-#include <coreinit/memorymap.h>
-#include <coreinit/memexpheap.h>
-#include <coreinit/launch.h>
-#include <sysapp/launch.h>
-#include "wut_extra.h"
 #include <utils/logger.h>
 #include "patcher/ingame.h"
 
@@ -42,7 +33,7 @@ WUPS_PLUGIN_LICENSE("ISC");
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
 
-static bool is555(MCP_SystemVersion version) {
+static bool is555(MCPSystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
 }
 
@@ -58,12 +49,12 @@ INITIALIZE_PLUGIN() {
     }
 
     //get os version
-    MCP_SystemVersion os_version;
+    MCPSystemVersion os_version;
     int mcp = MCP_Open();
     int ret = MCP_GetSystemVersion(mcp, &os_version);
     if (ret < 0) {
         DEBUG_FUNCTION_LINE("getting system version failed (%d/%d)!", mcp, ret);
-        os_version = (MCP_SystemVersion) {
+        os_version = (MCPSystemVersion) {
                 .major = 5, .minor = 5, .patch = 5, .region = 'E'
         };
     }
@@ -91,4 +82,43 @@ ON_APPLICATION_START() {
     RunPatcher();
 }
 
-ON_APPLICATION_ENDS() {}
+// Try to hook the webkit applets fairly early - wish there was a better way to do this...
+
+DECL_FUNCTION(int, FSOpenFile_miiverse, FSClient *client, FSCmdBlock *block, const char *path, const char *mode, uint32_t *handle, int errorMask) {
+    const char *oma = "vol/content/preload.oma";
+
+    if (strcmp(oma, path) == 0)
+    {
+        WHBLogUdpInit();
+        RunPatcher();
+    }
+
+    return real_FSOpenFile_miiverse(client, block, path, mode, handle, errorMask);
+}
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile_miiverse, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+
+DECL_FUNCTION(int, FSOpenFile_tvii, FSClient *client, FSCmdBlock *block, const char *path, const char *mode, uint32_t *handle, int errorMask) {
+    const char *oma = "/vol/content/skin/Skin.dat";
+
+    if (strcmp(oma, path) == 0)
+    {
+        WHBLogUdpInit();
+        RunPatcher();
+    }
+
+    return real_FSOpenFile_tvii(client, block, path, mode, handle, errorMask);
+}
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile_tvii, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_TVII);
+
+DECL_FUNCTION(int, FSOpenFile_eshop, FSClient *client, FSCmdBlock *block, const char *path, const char *mode, uint32_t *handle, int errorMask) {
+    const char *oma = "vol/content/preload.oma";
+
+    if (strcmp(oma, path) == 0)
+    {
+        WHBLogUdpInit();
+        RunPatcher();
+    }
+
+    return real_FSOpenFile_eshop(client, block, path, mode, handle, errorMask);
+}
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile_eshop, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_ESHOP);
